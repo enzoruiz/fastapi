@@ -4,7 +4,7 @@ Add Product model
 
 from yoyo import step
 
-__depends__ = {'20221108_01_UyVUp-add-user-model'}
+__depends__ = {'20221113_01_WJpjr-add-user-model'}
 
 steps = [
     step(
