@@ -32,7 +32,7 @@ class Product(Base):
 
     id = Column(UUID(as_uuid=True), default=uuid.uuid4, index=True, primary_key=True)
     name = Column(String(90))
-    description = Column(String(25))
+    sku = Column(String(25))
     price = Column(Float)
     brand = Column(String(25))
     is_active = Column(Boolean, default=True)
