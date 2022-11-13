@@ -2,7 +2,7 @@
 
 ## Required Environment Variables
 - DATABASE=postgresql://postgres:postgres@localhost:5432/mydatabase
-- SECRET_KEY=mysecretkey
+- SECRET_KEY=mysecretkey (use => import os; print(os.urandom(24).hex()))
 
 ## Install dependencies
 pip install -r requirements/base.txt
