@@ -80,12 +80,24 @@ def create_product(product: ProductCreateSchema, logged_user=manager_depends):
         raise HTTPException(status_code=401, detail="Not authorized to create products")
 
 
+@app.get("/products/{product_id}", response_model=ProductOutSchema)
+def get_product(product_id: UUID):
+    db_product = ProductService.get_product_by_id(
+        product_id=product_id, is_anonymous=True
+    )
+    if not db_product:
+        raise HTTPException(status_code=404, detail="Product does not exist!")
+    return db_product
+
+
 @app.post("/products/update/", response_model=ProductOutSchema)
 def update_product(
     product_id: UUID, product: ProductUpdateSchema, logged_user=manager_depends
 ):
     if logged_user.role == ROLE_ADMIN:
-        db_product = ProductService.get_product_by_id(product_id=product_id)
+        db_product = ProductService.get_product_by_id(
+            product_id=product_id, is_anonymous=False
+        )
         if not db_product:
             raise HTTPException(status_code=400, detail="Invalid User")
 

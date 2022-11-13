@@ -94,8 +94,14 @@ class ProductService:
         )
 
     @classmethod
-    def get_product_by_id(self, product_id: UUID):
-        return db.query(Product).filter(Product.id == product_id).first()
+    def get_product_by_id(self, product_id: UUID, is_anonymous: bool):
+        product = db.query(Product).filter(Product.id == product_id).first()
+
+        if is_anonymous:
+            # TODO: REGISTER QUERY
+            pass
+
+        return product
 
     @classmethod
     def create_product(self, product: ProductCreateSchema):
@@ -118,5 +124,7 @@ class ProductService:
         db.add(db_product)
         db.commit()
         db.refresh(db_product)
+
+        # TODO: SEND NOTITICATION TO ADMINS
 
         return db_product
