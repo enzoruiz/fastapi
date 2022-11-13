@@ -1,19 +1,25 @@
-from typing import Union
-
-from fastapi import Depends, FastAPI, HTTPException
-from sqlalchemy.orm import Session
-from fastapi import FastAPI
-from fastapi import Depends
-from fastapi.security import OAuth2PasswordRequestForm
-from fastapi_login.exceptions import InvalidCredentialsException
 from uuid import UUID
 
-from .schemas import UserCreateSchema, UserOutSchema, UserUpdateSchema, ProductCreateSchema, ProductOutSchema, ProductUpdateSchema
-from .services import UserService, ProductService, manager, load_user
-from .hashing import Hasher
+from fastapi.security import OAuth2PasswordRequestForm
+from fastapi_login.exceptions import InvalidCredentialsException
+
+from fastapi import Depends, FastAPI, HTTPException
+
 from .constants import ROLE_ADMIN
+from .hashing import Hasher
+from .schemas import (
+    ProductCreateSchema,
+    ProductOutSchema,
+    ProductUpdateSchema,
+    UserCreateSchema,
+    UserOutSchema,
+    UserUpdateSchema,
+)
+from .services import ProductService, UserService, load_user, manager
 
 app = FastAPI()
+depends = Depends()
+manager_depends = Depends(manager)
 
 
 @app.get("/")
@@ -21,8 +27,8 @@ def read_root():
     return {"Hello": "World"}
 
 
-@app.post('/auth/token')
-def login(data: OAuth2PasswordRequestForm = Depends()):
+@app.post("/auth/token")
+def login(data: OAuth2PasswordRequestForm = depends):
     username = data.username
     password = data.password
 
@@ -32,16 +38,16 @@ def login(data: OAuth2PasswordRequestForm = Depends()):
         raise InvalidCredentialsException
     elif not Hasher.verify_password(password, user.password):
         raise InvalidCredentialsException
-    
+
     access_token = manager.create_access_token(
         data=dict(sub=username, username=username)
     )
 
-    return {'access_token': access_token, 'token_type': 'bearer'}
+    return {"access_token": access_token, "token_type": "bearer"}
 
 
 @app.post("/users/", response_model=UserOutSchema)
-def create_user(user: UserCreateSchema, logged_user=Depends(manager)):
+def create_user(user: UserCreateSchema, logged_user=manager_depends):
     if logged_user.role == ROLE_ADMIN:
         db_user = UserService.get_user_by_username(username=user.username)
         if db_user:
@@ -52,7 +58,7 @@ def create_user(user: UserCreateSchema, logged_user=Depends(manager)):
 
 
 @app.post("/users/update/", response_model=UserOutSchema)
-def update_user(user_id: UUID, user: UserUpdateSchema, logged_user=Depends(manager)):
+def update_user(user_id: UUID, user: UserUpdateSchema, logged_user=manager_depends):
     if logged_user.role == ROLE_ADMIN:
         db_user = UserService.get_user_by_id(user_id=user_id)
         if not db_user:
@@ -64,7 +70,7 @@ def update_user(user_id: UUID, user: UserUpdateSchema, logged_user=Depends(manag
 
 
 @app.post("/products/", response_model=ProductOutSchema)
-def create_product(product: ProductCreateSchema, logged_user=Depends(manager)):
+def create_product(product: ProductCreateSchema, logged_user=manager_depends):
     if logged_user.role == ROLE_ADMIN:
         db_product = ProductService.get_product_by_name(name=product.name)
         if db_product:
@@ -75,7 +81,9 @@ def create_product(product: ProductCreateSchema, logged_user=Depends(manager)):
 
 
 @app.post("/products/update/", response_model=ProductOutSchema)
-def update_product(product_id: UUID, product: ProductUpdateSchema, logged_user=Depends(manager)):
+def update_product(
+    product_id: UUID, product: ProductUpdateSchema, logged_user=manager_depends
+):
     if logged_user.role == ROLE_ADMIN:
         db_product = ProductService.get_product_by_id(product_id=product_id)
         if not db_product:

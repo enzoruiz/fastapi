@@ -1,27 +1,35 @@
-import sqlalchemy as sa
 import os
 from uuid import UUID
 
-from .schemas import UserCreateSchema, UserOutSchema, UserUpdateSchema, ProductCreateSchema, ProductOutSchema, ProductUpdateSchema
-from .models import User, Product
-from .hashing import Hasher
-from .database import db
-from .constants import ROLE_ADMIN
+import sqlalchemy as sa
 from fastapi_login import LoginManager
 
+from .constants import ROLE_ADMIN
+from .database import db
+from .hashing import Hasher
+from .models import Product, User
+from .schemas import (
+    ProductCreateSchema,
+    ProductOutSchema,
+    ProductUpdateSchema,
+    UserCreateSchema,
+    UserOutSchema,
+    UserUpdateSchema,
+)
+
 SECRET = os.getenv("SECRET_KEY")
-manager = LoginManager(SECRET, token_url='/auth/token')
+manager = LoginManager(SECRET, token_url="/auth/token")
 
 
 class UserService:
     @classmethod
     def get_user_object_as_schema(self, user: User):
         return UserOutSchema(
-                id=user.id,
-                username=user.username,
-                name=user.name,
-                role=user.role,
-                is_active=user.is_active
+            id=user.id,
+            username=user.username,
+            name=user.name,
+            role=user.role,
+            is_active=user.is_active,
         )
 
     @classmethod
@@ -38,7 +46,7 @@ class UserService:
             username=user.username,
             password=Hasher.get_password_hash(user.password),
             name=user.name,
-            role=ROLE_ADMIN
+            role=ROLE_ADMIN,
         )
         db.add(db_user)
         db.commit()
@@ -70,18 +78,20 @@ class ProductService:
     @classmethod
     def get_user_object_as_schema(self, user: User):
         return ProductOutSchema(
-                id=user.id,
-                username=user.username,
-                name=user.name,
-                role=user.role,
-                is_active=user.is_active
+            id=user.id,
+            username=user.username,
+            name=user.name,
+            role=user.role,
+            is_active=user.is_active,
         )
 
     @classmethod
     def get_product_by_name(self, name: str):
-        return db.query(Product).filter(
-            sa.func.lower(Product.name).contains(name.lower(), autoescape=True)
-        ).first()
+        return (
+            db.query(Product)
+            .filter(sa.func.lower(Product.name).contains(name.lower(), autoescape=True))
+            .first()
+        )
 
     @classmethod
     def get_product_by_id(self, product_id: UUID):
@@ -90,10 +100,7 @@ class ProductService:
     @classmethod
     def create_product(self, product: ProductCreateSchema):
         db_product = Product(
-            name=product.name,
-            sku=product.sku,
-            price=product.price,
-            brand=product.brand
+            name=product.name, sku=product.sku, price=product.price, brand=product.brand
         )
         db.add(db_product)
         db.commit()
