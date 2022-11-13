@@ -20,3 +20,9 @@ pip install -r requirements/linters.txt
 - black app/
 - isort app/
 - flake8 app/
+
+## TODO:
+- Tests coverage with pytest
+- Send email notification when admin updates a product (using AWS Lambda => Email provider)
+- Record log when a product is consulted (using AWS Lambda => Save log)
+- Containerize the app and CI/CD
