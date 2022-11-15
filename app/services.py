@@ -7,7 +7,7 @@ from fastapi_login import LoginManager
 from .constants import ROLE_ADMIN
 from .database import db
 from .hashing import Hasher
-from .models import Product, User
+from .models import Product, ProductLog, User
 from .schemas import (
     ProductCreateSchema,
     ProductOutSchema,
@@ -94,12 +94,12 @@ class ProductService:
         )
 
     @classmethod
-    def get_product_by_id(self, product_id: UUID, is_anonymous: bool):
+    def get_product_by_id(self, product_id: UUID, ip_address: str, is_anonymous: bool):
         product = db.query(Product).filter(Product.id == product_id).first()
 
         if is_anonymous:
-            # TODO: REGISTER QUERY
-            pass
+            # INFO: we could store more information and to use AWS Lambda to handle asynchronously to not affect the performance
+            ProductLogService.save_log(product_id, ip_address)
 
         return product
 
@@ -128,3 +128,12 @@ class ProductService:
         # TODO: SEND NOTITICATION TO ADMINS
 
         return db_product
+
+
+class ProductLogService:
+    @classmethod
+    def save_log(self, product_id: UUID, ip_address: str):
+        db_product_log = ProductLog(product_id=product_id, ip_address=ip_address)
+        db.add(db_product_log)
+        db.commit()
+        db.refresh(db_product_log)

@@ -3,7 +3,7 @@ from uuid import UUID
 from fastapi.security import OAuth2PasswordRequestForm
 from fastapi_login.exceptions import InvalidCredentialsException
 
-from fastapi import Depends, FastAPI, HTTPException
+from fastapi import Depends, FastAPI, HTTPException, Request
 
 from .constants import ROLE_ADMIN
 from .hashing import Hasher
@@ -81,9 +81,9 @@ def create_product(product: ProductCreateSchema, logged_user=manager_depends):
 
 
 @app.get("/products/{product_id}", response_model=ProductOutSchema)
-def get_product(product_id: UUID):
+def get_product(product_id: UUID, request: Request):
     db_product = ProductService.get_product_by_id(
-        product_id=product_id, is_anonymous=True
+        product_id=product_id, ip_address=request.client.host, is_anonymous=True
     )
     if not db_product:
         raise HTTPException(status_code=404, detail="Product does not exist!")
